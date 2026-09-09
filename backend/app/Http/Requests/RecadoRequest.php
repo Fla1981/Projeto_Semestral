@@ -13,7 +13,6 @@ class RecadoController extends Controller
      */
     public function index()
     {
-        // Retorna os recados existentes do usuário autenticado
         return Recado::where('user_id', Auth::id())->get();
     }
 
@@ -26,8 +25,6 @@ class RecadoController extends Controller
             'titulo' => 'required|string|max:255',
             'texto' => 'required|string',
         ]);
-        // Define o user_id do recado como o ID do usuário autenticado
-        // Isso garante que o recado seja associado ao usuário correto
 
         $validated['user_id'] = Auth::id();
 
@@ -47,7 +44,6 @@ class RecadoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Localiza o recado pelo ID e pelo user_id do usuário autenticado
         $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([

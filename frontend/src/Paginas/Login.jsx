@@ -20,9 +20,10 @@ function Login() {
             });
             
             console.log(resposta.data);
-
+            //Salva o token de autenticação recebido do Laravel no navegador.
+            // Ele será utilizado pelo Axios nas próximas requisições à API.
+            localStorage.setItem("token", resposta.data.token);
             alert("Login realizado com sucesso!");
-
             navigate("/recados");
 
         } catch (erro) {
