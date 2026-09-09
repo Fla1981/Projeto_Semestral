@@ -132,6 +132,7 @@ function Registro() {
                 </Link>
 
                 <br />
+                <br />
 
                 <button type="submit">
                     Cadastrar
