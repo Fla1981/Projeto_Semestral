@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Api from "../Servicos/Api";
 
@@ -8,105 +7,104 @@ function Recados({ onLogout }) {
     const [texto, setTexto] = useState("");
     const [recados, setRecados] = useState([]);
 
+    // Guardar o recado que está sendo editado
+    // Quando o usuário clica em "Editar", o recado correspondente é armazenado aqui para que possamos preencher os campos do formulário com seus dados.
+    const [recadoEditando, setRecadoEditando] = useState(null);
+
     // Listar recados
     async function carregarRecados() {
         try {
-
             const resposta = await Api.get("/recados");
-
             setRecados(resposta.data);
-
         } catch (erro) {
-
-            console.error(
-                "Erro ao carregar recados:",
-                erro
-            );
+            console.error("Erro ao carregar recados:", erro);
 
             if (erro.response) {
-                console.log(
-                    "Resposta do servidor:",
-                    erro.response.data
-                );
+                console.log("Resposta do servidor:", erro.response.data);
             }
         }
     }
-    //carregar recados na tela aberta
+
     useEffect(() => {
-
         carregarRecados();
-
     }, []);
 
-    // Função para adicionar recado
+    // Adicionar recado
     async function adicionarRecado(event) {
-
         event.preventDefault();
 
         try {
-
             const resposta = await Api.post("/recados", {
                 titulo: titulo,
                 texto: texto
             });
 
             console.log(resposta.data);
-
             alert("Recado cadastrado com sucesso!");
 
             setTitulo("");
             setTexto("");
 
-            // Atualiza a lista depois do cadastro
             carregarRecados();
 
         } catch (erro) {
-
-            console.error(
-                "Erro ao cadastrar recado:",
-                erro
-            );
+            console.error("Erro ao cadastrar recado:", erro);
 
             if (erro.response) {
-                console.log(
-                    "Resposta do servidor:",
-                    erro.response.data
-                );
+                console.log("Resposta do servidor:", erro.response.data);
             }
 
             alert("Erro ao cadastrar recado.");
         }
     }
-    //Funcao para editar recado
-    async function editarRecado(id, novoTitulo, novoTexto) {
-        const recadoExistente = recados.find((recado) => recado.id === id);
-        if (!recadoExistente) {
-            alert("Recado não encontrado.");
-            return;
-        }
-        if(!novoTitulo || !novoTexto) {
+
+    // Função para editar recado
+    function editarRecado(recado) {
+
+        // Preenche os campos do formulário com os dados do recado que está sendo editado
+        setRecadoEditando(recado);
+        setTitulo(recado.titulo);
+        setTexto(recado.texto);
+    }
+
+    // Salvar edição do recado
+    async function salvarEdicao(event) {
+        event.preventDefault();
+
+        if (!titulo.trim() || !texto.trim()) {
             alert("Título e texto não podem estar vazios.");
             return;
         }
+
         try {
-            const resposta = await Api.put(`/recados/${id}`, {
-                titulo: novoTitulo,
-                texto: novoTexto
+
+            await Api.put(`/recados/${recadoEditando.id}`, {
+                titulo: titulo,
+                texto: texto
             });
+
             alert("Recado editado com sucesso!");
+
+            // Limpa os campos do formulário e o estado de edição
+            setTitulo("");
+            setTexto("");
+            setRecadoEditando(null);
+
             // Atualiza a lista depois da edição
             carregarRecados();
-        } catch (erro) {
 
-            console.error(
-                "Erro ao editar recado:",
-                erro
-            );
+        } catch (erro) {
+            console.error("Erro ao editar recado:", erro);
+
+            if (erro.response) {
+                console.log("Resposta do servidor:", erro.response.data);
+            }
+
             alert("Erro ao editar recado.");
         }
     }
 
-    // Função para excluir recado
+    // Excluir recado
     async function excluirRecado(id) {
 
         try {
@@ -115,21 +113,13 @@ function Recados({ onLogout }) {
 
             alert("Recado excluído com sucesso!");
 
-            // Atualiza a lista depois da exclusão
             carregarRecados();
 
         } catch (erro) {
-
-            console.error(
-                "Erro ao excluir recado:",
-                erro
-            );
+            console.error("Erro ao excluir recado:", erro);
 
             if (erro.response) {
-                console.log(
-                    "Resposta do servidor:",
-                    erro.response.data
-                );
+                console.log("Resposta do servidor:", erro.response.data);
             }
 
             alert("Erro ao excluir recado.");
@@ -139,99 +129,100 @@ function Recados({ onLogout }) {
     return (
         <div>
 
-            <h1>Lista de Recados</h1>
+            <h1>Meus Recados</h1>
 
             <button onClick={onLogout}>
                 Sair
             </button>
             <br />
+            <hr />
             <br />
-            <form onSubmit={adicionarRecado}>
+
+            <h2>
+                {recadoEditando ? "Editar Recado" : "Novo Recado"}
+            </h2>
+
+            <form onSubmit={recadoEditando ? salvarEdicao : adicionarRecado}>
 
                 <div>
-                    <label htmlFor="titulo">
-                        Título
-                    </label>
+                    <br />
+                    <label>Título:</label>
 
                     <input
-                        id="titulo"
                         type="text"
                         value={titulo}
-                        onChange={(event) =>
-                            setTitulo(event.target.value)
-                        }
-                        placeholder="Digite o título aqui"
-                        required
+                        onChange={(event) => setTitulo(event.target.value)}
+                        placeholder="Digite o título"
                     />
                 </div>
 
                 <br />
 
                 <div>
-                    <label htmlFor="texto">
-                        Texto
-                    </label>
+                    <label>Texto:</label>
 
-                    <input
-                        id="texto"
-                        type="text"
+                    <textarea
                         value={texto}
-                        onChange={(event) =>
-                            setTexto(event.target.value)
-                        }
-                        placeholder="Digite o seu texto aqui"
-                        required
+                        onChange={(event) => setTexto(event.target.value)}
+                        placeholder="Digite o texto"
                     />
                 </div>
 
                 <br />
 
                 <button type="submit">
-                    Adicionar Recado
+                    {recadoEditando
+                        ? "Salvar Alterações"
+                        : "Adicionar Recado"}
                 </button>
-                <br />
+
+                {recadoEditando && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setTitulo("");
+                            setTexto("");
+                            setRecadoEditando(null);
+                        }}
+                    >
+                        Cancelar
+                    </button>
+                )}
+
             </form>
 
             <hr />
 
-            <h2>Meus Recados</h2>
+            <h2>Lista de Recados</h2>
 
             {recados.length === 0 ? (
-                <p>
-                    Nenhum recado cadastrado.
-                </p>
+
+                <p>Nenhum recado cadastrado.</p>
+
             ) : (
+
                 recados.map((recado) => (
-                    <article key={recado.id}>
 
-                        <h3>
-                            {recado.titulo}
-                        </h3>
+                    <div key={recado.id}>
 
-                        <p>
-                            {recado.texto}
-                        </p>
+                        <h3>{recado.titulo}</h3>
 
-                        <button
-                            onClick={() =>
-                                excluirRecado(recado.id)
-                            }
-                        >
-                            Excluir
-                        </button>
-                        <button 
-                            onClick={() => editarRecado(recado.id)}
-                        >
+                        <p>{recado.texto}</p>
+
+                        <button onClick={() => editarRecado(recado)}>
                             Editar
                         </button>
-
-                    </article>
+                        <br />
+                        <br />
+                        <button onClick={() => excluirRecado(recado.id)}>
+                            Excluir
+                        </button>
+                        <hr />
+                    </div>
                 ))
             )}
-
         </div>
     );
 }
 
 export default Recados;
-
