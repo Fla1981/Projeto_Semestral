@@ -30,8 +30,6 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-       
-
         $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -53,4 +51,15 @@ class AuthController extends Controller
             'usuario' => $usuario
         ]);
     }
+    public function logout(Request $request)
+    {
+    // Revoga o token do usuário autenticado
+    $request->user()->currentAccessToken()->delete();
+
+    return response()->json([
+        'message' => 'Logout realizado com sucesso!'
+    ]);
+
+}
+
 }
