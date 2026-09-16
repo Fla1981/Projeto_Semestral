@@ -3,7 +3,7 @@
 ## Integrantes
 
 - Ricardo Silva Godoi
-- Renan Stella Gonçalves
+- Renan Stella Gouvêa
 - Caia Braga Castilho
 - Luis Felipe
 - Matheus Cappi
