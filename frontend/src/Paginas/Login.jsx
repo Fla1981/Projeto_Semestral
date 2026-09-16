@@ -6,19 +6,17 @@ function Login() {
     //guardar os dados digitados
     const [email, setEmail] = useState("");//atualização dos dados
     const [senha, setSenha] = useState("");
-   
-    const navigate = useNavigate();//navegar rotas
+    //navegar rotas
+    const navigate = useNavigate();
 
     async function handleSubmit(event) {
         event.preventDefault();
 
         try {
-
             const resposta = await Api.post("/login", {
                email: email,
                password: senha
             });
-            
             console.log(resposta.data);
             //Salva o token de autenticação recebido do Laravel no navegador.
             // Ele será utilizado pelo Axios nas próximas requisições à API.
@@ -91,7 +89,7 @@ function Login() {
 
                     <br />
                     <br />
-
+                    
                     <Link to="/registro">
                         Não tem conta, cadastre-se
                     </Link>
