@@ -10,7 +10,7 @@ function Login() {
     const navigate = useNavigate();
 
     async function handleSubmit(event) {
-        
+
         event.preventDefault();
 
         try {
@@ -19,6 +19,7 @@ function Login() {
                password: senha
             });
             console.log(resposta.data);
+        
             //Salva o token de autenticação recebido do Laravel no navegador.
             // Ele será utilizado pelo Axios nas próximas requisições à API.
             localStorage.setItem("token", resposta.data.token);
