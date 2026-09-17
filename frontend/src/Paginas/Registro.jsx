@@ -45,9 +45,11 @@ function Registro() {
     }
 
     return (
-        <div>
-
-            <h1>Cadastro</h1>
+        // Organiza tela de cadastro
+        <div className="Registro-Container">
+           
+           <div className="Registro-Card">
+              <h1>Cadastro</h1>
             <br />
             <form onSubmit={handleSubmit}>
 
@@ -139,7 +141,7 @@ function Registro() {
                 </button>
 
             </form>
-
+           </div>
         </div>
     );
 }
