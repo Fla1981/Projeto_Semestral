@@ -7,77 +7,110 @@ function Recados({ onLogout }) {
     const [texto, setTexto] = useState("");
     const [recados, setRecados] = useState([]);
 
-    // Guardar o recado que está sendo editado
-    // Quando o usuário clica em "Editar", o recado correspondente é armazenado aqui para que possamos preencher os campos do formulário com seus dados.
+    // Guarda o recado que está sendo editado.
     const [recadoEditando, setRecadoEditando] = useState(null);
 
-    // Listar recados
+    // Lista os recados.
     async function carregarRecados() {
+
         try {
+
+            // Busca os recados no Back-end.
             const resposta = await Api.get("/recados");
+
+            // Guarda os recados recebidos.
             setRecados(resposta.data);
+
         } catch (erro) {
-            console.error("Erro ao carregar recados:", erro);
+
+            console.error(
+                "Erro ao carregar recados:",
+                erro
+            );
 
             if (erro.response) {
-                console.log("Resposta do servidor:", erro.response.data);
+                console.log(
+                    "Resposta do servidor:",
+                    erro.response.data
+                );
             }
         }
     }
 
+    // Executa a função quando a página é carregada.
     useEffect(() => {
         carregarRecados();
     }, []);
 
-    // Adicionar recado
+    // Adicionar recado.
     async function adicionarRecado(event) {
+
+        // Impede o formulário de recarregar a página.
         event.preventDefault();
 
         try {
+
+            // Envia o novo recado para o Back-end.
             const resposta = await Api.post("/recados", {
                 titulo: titulo,
                 texto: texto
             });
 
             console.log(resposta.data);
+
             alert("Recado cadastrado com sucesso!");
 
+            // Limpa os campos.
             setTitulo("");
             setTexto("");
 
+            // Atualiza a lista.
             carregarRecados();
 
         } catch (erro) {
-            console.error("Erro ao cadastrar recado:", erro);
+
+            console.error(
+                "Erro ao cadastrar recado:",
+                erro
+            );
 
             if (erro.response) {
-                console.log("Resposta do servidor:", erro.response.data);
+                console.log(
+                    "Resposta do servidor:",
+                    erro.response.data
+                );
             }
 
             alert("Erro ao cadastrar recado.");
         }
     }
 
-    // Função para editar recado
+    // Coloca o recado selecionado no formulário.
     function editarRecado(recado) {
 
-        // Preenche os campos do formulário com os dados do recado que está sendo editado
         setRecadoEditando(recado);
+
         setTitulo(recado.titulo);
+
         setTexto(recado.texto);
     }
 
-    // Salvar edição do recado
+    // Salva a edição do recado.
     async function salvarEdicao(event) {
+
         event.preventDefault();
 
+        // Verifica se os campos não estão vazios.
         if (!titulo.trim() || !texto.trim()) {
+
             alert("Título e texto não podem estar vazios.");
+
             return;
         }
 
         try {
 
+            // Envia as alterações para o Back-end.
             await Api.put(`/recados/${recadoEditando.id}`, {
                 titulo: titulo,
                 texto: texto
@@ -85,41 +118,59 @@ function Recados({ onLogout }) {
 
             alert("Recado editado com sucesso!");
 
-            // Limpa os campos do formulário e o estado de edição
+            // Limpa os campos.
             setTitulo("");
             setTexto("");
+
+            // Sai do modo de edição.
             setRecadoEditando(null);
 
-            // Atualiza a lista depois da edição
+            // Atualiza a lista.
             carregarRecados();
 
         } catch (erro) {
-            console.error("Erro ao editar recado:", erro);
+
+            console.error(
+                "Erro ao editar recado:",
+                erro
+            );
 
             if (erro.response) {
-                console.log("Resposta do servidor:", erro.response.data);
+                console.log(
+                    "Resposta do servidor:",
+                    erro.response.data
+                );
             }
 
             alert("Erro ao editar recado.");
         }
     }
 
-    // Excluir recado
+    // Excluir recado.
     async function excluirRecado(id) {
 
         try {
 
+            // Envia a solicitação de exclusão para o Back-end.
             await Api.delete(`/recados/${id}`);
 
             alert("Recado excluído com sucesso!");
 
+            // Atualiza a lista.
             carregarRecados();
 
         } catch (erro) {
-            console.error("Erro ao excluir recado:", erro);
+
+            console.error(
+                "Erro ao excluir recado:",
+                erro
+            );
 
             if (erro.response) {
-                console.log("Resposta do servidor:", erro.response.data);
+                console.log(
+                    "Resposta do servidor:",
+                    erro.response.data
+                );
             }
 
             alert("Erro ao excluir recado.");
@@ -127,66 +178,104 @@ function Recados({ onLogout }) {
     }
 
     return (
-        <div>
+        <div className="Recados-Container">
 
-            <h1>Meus Recados</h1>
+            {/* Cabeçalho da página */}
+            <div className="Recados-Header">
 
-            <button onClick={onLogout}>
-                Sair
-            </button>
-            <br />
-            <hr />
-            <br />
+                <h1>Meus Recados</h1>
+
+                {/* Botão para sair da conta */}
+                <button
+                    className="Botao-Sair"
+                    onClick={onLogout}
+                >
+                    Sair
+                </button>
+
+            </div>
 
             <h2>
-                {recadoEditando ? "Editar Recado" : "Novo Recado"}
+                {recadoEditando
+                    ? "Editar Recado"
+                    : "Novo Recado"}
             </h2>
 
-            <form onSubmit={recadoEditando ? salvarEdicao : adicionarRecado}>
+            {/* Formulário de cadastro/edição */}
+            <form
+                className="Recado-Form"
+                onSubmit={
+                    recadoEditando
+                        ? salvarEdicao
+                        : adicionarRecado
+                }
+            >
 
                 <div>
-                    <br />
-                    <label>Título:</label>
+
+                    <label>
+                        Título:
+                    </label>
 
                     <input
                         type="text"
                         value={titulo}
-                        onChange={(event) => setTitulo(event.target.value)}
+                        onChange={(event) =>
+                            setTitulo(event.target.value)
+                        }
                         placeholder="Digite o título"
                     />
+
                 </div>
 
                 <br />
 
                 <div>
-                    <label>Texto:</label>
+
+                    <label>
+                        Texto:
+                    </label>
 
                     <textarea
                         value={texto}
-                        onChange={(event) => setTexto(event.target.value)}
+                        onChange={(event) =>
+                            setTexto(event.target.value)
+                        }
                         placeholder="Digite o texto"
                     />
+
                 </div>
 
                 <br />
 
                 <button type="submit">
+
                     {recadoEditando
                         ? "Salvar Alterações"
                         : "Adicionar Recado"}
+
                 </button>
 
+                {/* 
+                    O botão Cancelar aparece somente
+                    quando estamos editando um recado.
+                */}
                 {recadoEditando && (
+
                     <button
                         type="button"
+                        className="Botao-Cancelar"
                         onClick={() => {
+
                             setTitulo("");
                             setTexto("");
                             setRecadoEditando(null);
+
                         }}
                     >
                         Cancelar
                     </button>
+
                 )}
 
             </form>
@@ -201,26 +290,62 @@ function Recados({ onLogout }) {
 
             ) : (
 
-                recados.map((recado) => (
+                /*
+                    Recados-Lista é o container da lista.
 
-                    <div key={recado.id}>
+                    Dentro dele usamos map() para percorrer
+                    todos os recados recebidos do Back-end.
+                */
+                <div className="Recados-Lista">
 
-                        <h3>{recado.titulo}</h3>
+                    {recados.map((recado) => (
 
-                        <p>{recado.texto}</p>
+                        /*
+                            Cada recado vira um cartão.
 
-                        <button onClick={() => editarRecado(recado)}>
-                            Editar
-                        </button>
-                        <br />
-                        <br />
-                        <button onClick={() => excluirRecado(recado.id)}>
-                            Excluir
-                        </button>
-                        <hr />
-                    </div>
-                ))
+                            className é usado para aplicar
+                            o CSS no cartão.
+                        */
+                        <div
+                            className="Recado-Card"
+                            key={recado.id}
+                        >
+
+                            <h3>
+                                {recado.titulo}
+                            </h3>
+
+                            <p>
+                                {recado.texto}
+                            </p>
+
+                            <button
+                                onClick={() =>
+                                    editarRecado(recado)
+                                }
+                            >
+                                Editar
+                            </button>
+
+                            <br />
+                            <br />
+
+                            <button
+                                className="Botao-Excluir"
+                                onClick={() =>
+                                    excluirRecado(recado.id)
+                                }
+                            >
+                                Excluir
+                            </button>
+
+                        </div>
+
+                    ))}
+
+                </div>
             )}
+
         </div>
     );
 }
