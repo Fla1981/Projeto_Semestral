@@ -1,37 +1,51 @@
-import { useState } from "react";//guardar informaçoes digitas no formulario
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Api from "../Servicos/Api";
 
 function Login() {
-    //guardar os dados digitados
-    const [email, setEmail] = useState("");//atualização dos dados
+
+    // Guarda o email digitado pelo usuário.
+    const [email, setEmail] = useState("");
+
+    // Guarda a senha digitada pelo usuário.
     const [senha, setSenha] = useState("");
-    //navegar rotas
+
+    // Permite navegar entre as páginas.
     const navigate = useNavigate();
 
     async function handleSubmit(event) {
 
+        // Impede o formulário de recarregar a página.
         event.preventDefault();
 
         try {
+
+            // Envia email e senha para o Back-end.
             const resposta = await Api.post("/login", {
-               email: email,
-               password: senha
+                email: email,
+                password: senha
             });
+
             console.log(resposta.data);
-        
-            //Salva o token de autenticação recebido do Laravel no navegador.
-            // Ele será utilizado pelo Axios nas próximas requisições à API.
+
+            // Guarda o token recebido do Back-end no navegador.
+            // Por enquanto estamos usando localStorage.
             localStorage.setItem("token", resposta.data.token);
+
             alert("Login realizado com sucesso!");
+
+            // Depois do login, vai para a página de recados.
             navigate("/recados");
 
         } catch (erro) {
 
-            console.error("Erro ao logar na conta",erro);
+            console.error("Erro ao logar na conta:", erro);
 
             if (erro.response) {
-                console.log("Resposta do servidor:",erro.response.data);
+                console.log(
+                    "Resposta do servidor:",
+                    erro.response.data
+                );
             }
 
             alert("O seu email ou senha está incorreto.");
@@ -48,6 +62,7 @@ function Login() {
                 <form onSubmit={handleSubmit}>
 
                     <div>
+
                         <label htmlFor="email">
                             Email
                         </label>
@@ -62,11 +77,13 @@ function Login() {
                             placeholder="Digite o seu email"
                             required
                         />
+
                     </div>
 
                     <br />
 
                     <div>
+
                         <label htmlFor="senha">
                             Senha
                         </label>
@@ -81,6 +98,7 @@ function Login() {
                             placeholder="Digite a sua senha"
                             required
                         />
+
                     </div>
 
                     <br />
@@ -91,7 +109,7 @@ function Login() {
 
                     <br />
                     <br />
-                    
+
                     <Link to="/registro">
                         Não tem conta, cadastre-se
                     </Link>
@@ -105,4 +123,3 @@ function Login() {
 }
 
 export default Login;
-
