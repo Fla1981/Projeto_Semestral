@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Api from "../Servicos/Api";
+import { registrar } from "../Servicos/AuthService";
 
 function Registro() {
 
@@ -45,11 +45,9 @@ function Registro() {
     }
 
     return (
-        // Organiza tela de cadastro
-        <div className="Registro-Container">
-           
-           <div className="Registro-Card">
-              <h1>Cadastro</h1>
+        <div>
+
+            <h1>Cadastro</h1>
             <br />
             <form onSubmit={handleSubmit}>
 
@@ -141,7 +139,7 @@ function Registro() {
                 </button>
 
             </form>
-           </div>
+
         </div>
     );
 }
