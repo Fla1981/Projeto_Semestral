@@ -8,22 +8,25 @@ function Registro() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [confirmarSenha, setConfirmarSenha] = useState("");
+
     async function handleSubmit(event) {
         event.preventDefault();
+
         if (senha !== confirmarSenha) {
             alert("As senhas não são iguais.");
             return;
         }
-        try {
-            //manda resposta ao formulario com a requisicao nome,email,senha
-            const resposta = await Api.post("/register", {
-                name: nome,
-                email: email,
-                password: senha,
-                password_confirmation: confirmarSenha
-            });
 
-            console.log(resposta.data);
+        try {
+            // Envia os dados para o AuthService
+            const resposta = await registrar(
+                nome,
+                email,
+                senha,
+                confirmarSenha
+            );
+
+            console.log(resposta);
 
             alert("Cadastro realizado com sucesso!");
 
