@@ -10,6 +10,7 @@ function Registro() {
     const [confirmarSenha, setConfirmarSenha] = useState("");
 
     async function handleSubmit(event) {
+
         event.preventDefault();
 
         if (senha !== confirmarSenha) {
