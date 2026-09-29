@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PokemonService from "../Servicos/PokemonService";
 import {
     listarRecados,
     criarRecado,
@@ -7,7 +8,9 @@ import {
 } from "../Servicos/RecadosService";
 
 function Recados({ onLogout }) {
-
+    const [pokemon, setPokemon] = useState(null);
+    const [nomePokemon, setNomePokemon] = useState("");
+    const [carregandoPokemon, setCarregandoPokemon] = useState(false);
     const [titulo, setTitulo] = useState("");
     const [texto, setTexto] = useState("");
     const [recados, setRecados] = useState([]);
@@ -15,6 +18,30 @@ function Recados({ onLogout }) {
     // Guardar o recado que está sendo editado
     // Quando o usuário clica em "Editar", o recado correspondente é armazenado aqui para que possamos preencher os campos do formulário com seus dados.
     const [recadoEditando, setRecadoEditando] = useState(null);
+    
+     //api pokemon 
+     async function buscarPokemon() {
+    if (!nomePokemon.trim()) {
+        alert("Digite o nome de um Pokémon.");
+        return;
+    }
+
+    try {
+        setCarregandoPokemon(true);
+
+        const dados = await PokemonService.buscarPokemon(nomePokemon);
+
+        setPokemon(dados);
+
+    } catch (erro) {
+        console.error("Erro ao buscar Pokémon:", erro);
+        alert("Pokémon não encontrado.");
+        setPokemon(null);
+
+    } finally {
+        setCarregandoPokemon(false);
+    }
+}
 
     // Listar recados
     async function carregarRecados() {
@@ -211,6 +238,55 @@ function Recados({ onLogout }) {
             </form>
 
             <hr />
+           
+
+            <h2>Buscar Pokémon</h2>
+
+<input
+    type="text"
+    value={nomePokemon}
+    onChange={(event) => setNomePokemon(event.target.value)}
+    placeholder="Ex: pikachu"
+/>
+
+<button onClick={buscarPokemon}>
+    Buscar
+</button>
+
+{carregandoPokemon && (
+    <p>Buscando Pokémon...</p>
+)}
+
+{pokemon && (
+    <div>
+        <h3>{pokemon.name.toUpperCase()}</h3>
+
+        <img
+            src={pokemon.sprites.front_default}
+            alt={pokemon.name}
+            width="150"
+        />
+
+        <p>
+            <strong>Tipo:</strong>{" "}
+            {pokemon.types
+                .map((tipo) => tipo.type.name)
+                .join(", ")}
+        </p>
+
+        <p>
+            <strong>Altura:</strong> {pokemon.height / 10} m
+        </p>
+
+        <p>
+            <strong>Peso:</strong> {pokemon.weight / 10} kg
+        </p>
+    </div>
+)}
+
+<hr />
+              
+
 
             <h2>Lista de Recados</h2>
 
