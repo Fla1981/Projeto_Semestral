@@ -1,17 +1,21 @@
 import Api from "./Api";
 
+const URL_CSRF = "http://localhost:8000/sanctum/csrf-cookie";
+
 export async function login(email, senha) {
+    await Api.get(URL_CSRF);
+
     const resposta = await Api.post("/login", {
         email: email,
         password: senha
     });
 
-    localStorage.setItem("token", resposta.data.token);
-
     return resposta.data;
 }
 
 export async function registrar(nome, email, senha, confirmarSenha) {
+    await Api.get(URL_CSRF);
+
     const resposta = await Api.post("/register", {
         name: nome,
         email: email,
@@ -22,6 +26,7 @@ export async function registrar(nome, email, senha, confirmarSenha) {
     return resposta.data;
 }
 
-export function logout() {
-    localStorage.removeItem("token");
+export async function logout() {
+    const resposta = await Api.post("/logout");
+    return resposta.data;
 }
