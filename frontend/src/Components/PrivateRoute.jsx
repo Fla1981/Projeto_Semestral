@@ -1,13 +1,28 @@
-import {Navigate} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { buscarUsuarioLogado } from "../services/AuthService";
 
-function PrivateRoute({children}) {
-    //Token Gerado pelo storage
-    const token = localStorage.getItem("token");
+function PrivateRoute({ children }) {
+    // null = ainda verificando, true = logado, false = não logado
+    const [logado, setLogado] = useState(null);
 
-    if (!token) {
+    useEffect(() => {
+        // Pergunta ao back-end se existe sessão (cookie HttpOnly)
+        buscarUsuarioLogado()
+            .then(() => setLogado(true))
+            .catch(() => setLogado(false));
+    }, []);
+
+    // Enquanto o back-end não responde, não redireciona
+    if (logado === null) {
+        return <p>Carregando...</p>;
+    }
+
+    if (!logado) {
         //Navegação para o login
         return <Navigate to="/login" />;
     }
+
     return children;
 }
 
