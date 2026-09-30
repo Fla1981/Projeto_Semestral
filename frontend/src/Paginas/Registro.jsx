@@ -48,102 +48,79 @@ function Registro() {
         }
     }
 
-    return (
-        <div>
-
-            <h1>Cadastro</h1>
-            <br />
-            <form onSubmit={handleSubmit}>
-
-                <div>
-                    <label htmlFor="nome">
-                        Nome
-                    </label>
-
-                    <input
-                        id="nome"
-                        type="text"
-                        value={nome}
-                        onChange={(event) =>
-                            setNome(event.target.value)
-                        }
-                        placeholder="Entre com o seu nome"
-                        required
-                    />
-                </div>
-
-                <br />
-
-                <div>
-                    <label htmlFor="email">
-                        Email
-                    </label>
-
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(event) =>
-                            setEmail(event.target.value)
-                        }
-                        placeholder="Entre com o seu email"
-                        required
-                    />
-                </div>
-
-                <br />
-
-                <div>
-                    <label htmlFor="Senha">
-                        Senha
-                    </label>
-
-                    <input
-                        id="senha"
-                        type="password"
-                        value={senha}
-                        onChange={(event) =>
-                            setSenha(event.target.value)
-                        }
-                        placeholder="Entre com a senha"
-                        required
-                    />
-                </div>
-
-                <br />
-
-                <div>
-                    <label htmlFor="confirmarSenha">
-                        Confirmar senha
-                    </label>
-
-                    <input
-                        id="confirmarSenha"
-                        type="password"
-                        value={confirmarSenha}
-                        onChange={(event) =>
-                            setConfirmarSenha(event.target.value)
-                        }
-                        placeholder="Confirme sua senha"
-                        required
-                    />
-                </div>
-
-                <br />
-
-                <Link to="/login">
-                    Já possui uma conta? Faça login
-                </Link>
-
-                <br />
-                <br />
-
-                <button type="submit">
-                    Cadastrar
-                </button>
-
-            </form>
-
+   return (
+        <div className="Registro-Container">
+ 
+            <div className="Registro-Card">
+ 
+                <h1>Cadastro</h1>
+ 
+                <form onSubmit={handleSubmit}>
+ 
+                    <div className="Campo">
+                        <label htmlFor="nome">Nome</label>
+ 
+                        <input
+                            id="nome"
+                            type="text"
+                            value={nome}
+                            onChange={(event) => setNome(event.target.value)}
+                            placeholder="Entre com o seu nome"
+                            required
+                        />
+                    </div>
+ 
+                    <div className="Campo">
+                        <label htmlFor="email">Email</label>
+ 
+                        <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(event) => setEmail(event.target.value)}
+                            placeholder="Entre com o seu email"
+                            required
+                        />
+                    </div>
+ 
+                    <div className="Campo">
+                        <label htmlFor="senha">Senha</label>
+ 
+                        <input
+                            id="senha"
+                            type="password"
+                            value={senha}
+                            onChange={(event) => setSenha(event.target.value)}
+                            placeholder="Entre com a senha"
+                            required
+                        />
+                    </div>
+ 
+                    <div className="Campo">
+                        <label htmlFor="confirmarSenha">Confirmar senha</label>
+ 
+                        <input
+                            id="confirmarSenha"
+                            type="password"
+                            value={confirmarSenha}
+                            onChange={(event) => setConfirmarSenha(event.target.value)}
+                            placeholder="Confirme sua senha"
+                            required
+                        />
+                    </div>
+ 
+                    <button type="submit" className="Botao-Cheio">
+                        Cadastrar
+                    </button>
+ 
+                    <Link to="/login" className="Form-Link">
+                        Já possui uma conta? Faça login
+                    </Link>
+ 
+                </form>
+ 
+            </div>
+ 
         </div>
     );
 }
