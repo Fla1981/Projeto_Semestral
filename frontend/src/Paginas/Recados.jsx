@@ -172,150 +172,159 @@ function Recados({ onLogout }) {
         }
    }
 
-    return (
-        <div>
-
-            <h1>Meus Recados</h1>
-
-            <button onClick={onLogout}>
-                Sair
-            </button>
-            <br />
-            <hr />
-            <br />
-
-            <h2>
-                {recadoEditando ? "Editar Recado" : "Novo Recado"}
-            </h2>
-
-            <form onSubmit={recadoEditando ? salvarEdicao : adicionarRecado}>
-
-                <div>
-                    <br />
-                    <label>Título:</label>
-
+     return (
+        <div className="Recados-Container">
+ 
+            <header className="Recados-Header">
+                <h1>Meus Recados</h1>
+ 
+                <button className="Botao-Sair" onClick={onLogout}>
+                    Sair
+                </button>
+            </header>
+ 
+            {/* Formulário de novo recado / edição */}
+            <section className="Recado-Form">
+ 
+                <h2>
+                    {recadoEditando ? "Editar Recado" : "Novo Recado"}
+                </h2>
+ 
+                <form onSubmit={recadoEditando ? salvarEdicao : adicionarRecado}>
+ 
+                    <div className="Campo">
+                        <label htmlFor="titulo">Título</label>
+ 
+                        <input
+                            id="titulo"
+                            type="text"
+                            value={titulo}
+                            onChange={(event) => setTitulo(event.target.value)}
+                            placeholder="Digite o título"
+                        />
+                    </div>
+ 
+                    <div className="Campo">
+                        <label htmlFor="texto">Texto</label>
+ 
+                        <textarea
+                            id="texto"
+                            value={texto}
+                            onChange={(event) => setTexto(event.target.value)}
+                            placeholder="Digite o texto"
+                        />
+                    </div>
+ 
+                    <div className="Form-Acoes">
+                        <button type="submit">
+                            {recadoEditando
+                                ? "Salvar Alterações"
+                                : "Adicionar Recado"}
+                        </button>
+ 
+                        {recadoEditando && (
+                            <button
+                                type="button"
+                                className="Botao-Secundario"
+                                onClick={cancelarEdicao}
+                            >
+                                Cancelar
+                            </button>
+                        )}
+                    </div>
+ 
+                </form>
+ 
+            </section>
+ 
+            {/* Busca de Pokémon (API externa) */}
+            <section className="Pokemon-Secao">
+ 
+                <h2>Buscar Pokémon</h2>
+ 
+                <div className="Pokemon-Busca">
                     <input
                         type="text"
-                        value={titulo}
-                        onChange={(event) => setTitulo(event.target.value)}
-                        placeholder="Digite o título"
+                        value={nomePokemon}
+                        onChange={(event) => setNomePokemon(event.target.value)}
+                        placeholder="Ex: pikachu"
                     />
-                </div>
-
-                <br />
-
-                <div>
-                    <label>Texto:</label>
-
-                    <textarea
-                        value={texto}
-                        onChange={(event) => setTexto(event.target.value)}
-                        placeholder="Digite o texto"
-                    />
-                </div>
-
-                <br />
-
-                <button type="submit">
-                    {recadoEditando
-                        ? "Salvar Alterações"
-                        : "Adicionar Recado"}
-                </button>
-
-                {recadoEditando && (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTitulo("");
-                            setTexto("");
-                            setRecadoEditando(null);
-                        }}
-                    >
-                        Cancelar
+ 
+                    <button onClick={buscarPokemon}>
+                        Buscar
                     </button>
+                </div>
+ 
+                {carregandoPokemon && (
+                    <p className="Pokemon-Status">Buscando Pokémon...</p>
                 )}
-
-            </form>
-
-            <hr />
-           
-
-            <h2>Buscar Pokémon</h2>
-
-<input
-    type="text"
-    value={nomePokemon}
-    onChange={(event) => setNomePokemon(event.target.value)}
-    placeholder="Ex: pikachu"
-/>
-
-<button onClick={buscarPokemon}>
-    Buscar
-</button>
-
-{carregandoPokemon && (
-    <p>Buscando Pokémon...</p>
-)}
-
-{pokemon && (
-    <div>
-        <h3>{pokemon.name.toUpperCase()}</h3>
-
-        <img
-            src={pokemon.sprites.front_default}
-            alt={pokemon.name}
-            width="150"
-        />
-
-        <p>
-            <strong>Tipo:</strong>{" "}
-            {pokemon.types
-                .map((tipo) => tipo.type.name)
-                .join(", ")}
-        </p>
-
-        <p>
-            <strong>Altura:</strong> {pokemon.height / 10} m
-        </p>
-
-        <p>
-            <strong>Peso:</strong> {pokemon.weight / 10} kg
-        </p>
-    </div>
-)}
-
-<hr />
-              
-
-
-            <h2>Lista de Recados</h2>
-
-            {recados.length === 0 ? (
-
-                <p>Nenhum recado cadastrado.</p>
-
-            ) : (
-
-                recados.map((recado) => (
-
-                    <div key={recado.id}>
-
-                        <h3>{recado.titulo}</h3>
-
-                        <p>{recado.texto}</p>
-
-                        <button onClick={() => editarRecado(recado)}>
-                            Editar
-                        </button>
-                        <br />
-                        <br />
-                        <button className="Botao-Excluir" onClick={() => excluirRecadoTela(recado.id)}>
-                            Excluir
-                        </button>
-                        <hr />
+ 
+                {pokemon && (
+                    <div className="Pokemon-Card">
+                        <img
+                            src={pokemon.sprites.front_default}
+                            alt={pokemon.name}
+                        />
+ 
+                        <div>
+                            <h3>{pokemon.name.toUpperCase()}</h3>
+ 
+                            <p>
+                                <strong>Tipo:</strong>{" "}
+                                {pokemon.types
+                                    .map((tipo) => tipo.type.name)
+                                    .join(", ")}
+                            </p>
+ 
+                            <p>
+                                <strong>Altura:</strong> {pokemon.height / 10} m
+                            </p>
+ 
+                            <p>
+                                <strong>Peso:</strong> {pokemon.weight / 10} kg
+                            </p>
+                        </div>
                     </div>
-                ))
+                )}
+ 
+            </section>
+ 
+            {/* Lista de recados */}
+            <h2>Lista de Recados</h2>
+ 
+            {recados.length === 0 ? (
+ 
+                <p className="Vazio">Nenhum recado cadastrado.</p>
+ 
+            ) : (
+ 
+                <div className="Recados-Lista">
+                    {recados.map((recado) => (
+ 
+                        <div className="Recado-Card" key={recado.id}>
+ 
+                            <h3>{recado.titulo}</h3>
+ 
+                            <p>{recado.texto}</p>
+ 
+                            <div className="Recado-Acoes">
+                                <button onClick={() => editarRecado(recado)}>
+                                    Editar
+                                </button>
+ 
+                                <button
+                                    className="Botao-Excluir"
+                                    onClick={() => excluirRecadoTela(recado.id)}
+                                >
+                                    Excluir
+                                </button>
+                            </div>
+ 
+                        </div>
+                    ))}
+                </div>
             )}
+ 
         </div>
     );
 }
