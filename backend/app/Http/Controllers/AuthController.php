@@ -1,65 +1,62 @@
 <?php
-
+ 
 namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
+ 
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+ 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
+        $dados = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8|confirmed',
         ]);
-
-        $usuario = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+ 
+        $user = User::create([
+            'name' => $dados['name'],
+            'email' => $dados['email'],
+            'password' => Hash::make($dados['password']),
         ]);
-
+ 
         return response()->json([
-            'message' => 'Usuário cadastrado com sucesso!',
-            'usuario' => $usuario
+            'user' => $user->only(['id', 'name', 'email']),
         ], 201);
     }
-
+ 
     public function login(Request $request)
     {
-        $validated = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+        $credenciais = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
-
-        $usuario = User::where('email', $validated['email'])->first();
-
-        if (!$usuario || !Hash::check($validated['password'], $usuario->password)) {
+ 
+        if (! Auth::attempt($credenciais)) {
             return response()->json([
-                'message' => 'Email ou senha inválidos.'
+                'message' => 'Credenciais inválidas',
             ], 401);
         }
-        //ao criar o token, você pode especificar um nome para ele, que pode ser útil para identificar o token posteriormente. Aqui, estamos usando 'auth_token' como nome do token.
-        $token = $usuario->createToken('auth_token')->plainTextToken;
-        //retorna o token para o frontend armazená-lo e utilizá-lo
+ 
+        // Troca o ID da sessão depois do login
+        $request->session()->regenerate();
+ 
         return response()->json([
-            'message' => 'Login realizado com sucesso!',
-            'token' => $token,
-            'usuario' => $usuario
+            'user' => Auth::user()->only(['id', 'name', 'email']),
         ]);
     }
+ 
     public function logout(Request $request)
     {
-    // Revoga o token do usuário autenticado
-    $request->user()->currentAccessToken()->delete();
-
-    return response()->json([
-        'message' => 'Logout realizado com sucesso!'
-    ]);
-
-}
-
+        Auth::guard('web')->logout();
+ 
+        // Destrói a sessão e renova o token CSRF
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+ 
+        return response()->json(['message' => 'Sessão encerrada']);
+    }
 }
