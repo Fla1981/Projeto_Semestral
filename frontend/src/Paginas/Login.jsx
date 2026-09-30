@@ -32,66 +32,51 @@ function Login() {
 
     return (
         <div className="Login-Container">
-
+ 
             <div className="Login-Card">
-
+ 
                 <h1>Login</h1>
-
+ 
                 <form onSubmit={handleSubmit}>
-
-                    <div>
-                        <label htmlFor="email">
-                            Email
-                        </label>
-
+ 
+                    <div className="Campo">
+                        <label htmlFor="email">Email</label>
+ 
                         <input
                             id="email"
                             type="email"
                             value={email}
-                            onChange={(event) =>
-                                setEmail(event.target.value)
-                            }
+                            onChange={(event) => setEmail(event.target.value)}
                             placeholder="Digite o seu email"
                             required
                         />
                     </div>
-
-                    <br />
-
-                    <div>
-                        <label htmlFor="senha">
-                            Senha
-                        </label>
-
+ 
+                    <div className="Campo">
+                        <label htmlFor="senha">Senha</label>
+ 
                         <input
                             id="senha"
                             type="password"
                             value={senha}
-                            onChange={(event) =>
-                                setSenha(event.target.value)
-                            }
+                            onChange={(event) => setSenha(event.target.value)}
                             placeholder="Digite a sua senha"
                             required
                         />
                     </div>
-
-                    <br />
-
-                    <button type="submit">
+ 
+                    <button type="submit" className="Botao-Cheio">
                         Entrar
                     </button>
-
-                    <br />
-                    <br />
-                    
-                    <Link to="/registro">
-                        Não tem conta, cadastre-se
+ 
+                    <Link to="/registro" className="Form-Link">
+                        Não tem conta? Cadastre-se
                     </Link>
-
+ 
                 </form>
-
+ 
             </div>
-
+ 
         </div>
     );
 }
