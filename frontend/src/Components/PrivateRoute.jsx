@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { buscarUsuarioLogado } from "../services/AuthService";
+import { buscarUsuarioLogado } from "../Servicos/AuthService";
 
 function PrivateRoute({ children }) {
     // null = ainda verificando, true = logado, false = não logado
