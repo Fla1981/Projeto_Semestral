@@ -30,3 +30,8 @@ export async function logout() {
     const resposta = await Api.post("/logout");
     return resposta.data;
 }
+
+export async function buscarUsuarioLogado() {
+    const resposta = await Api.get("/user");
+    return resposta.data;
+}
