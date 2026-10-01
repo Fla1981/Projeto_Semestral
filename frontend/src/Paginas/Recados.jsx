@@ -64,9 +64,11 @@ function Recados({ onLogout }) {
             }
         }
     }
+
     useEffect(() => {
         carregarRecados();
     }, []);
+
     // Função para editar recado
     function editarRecado(recado) {
 
@@ -74,6 +76,13 @@ function Recados({ onLogout }) {
         setRecadoEditando(recado);
         setTitulo(recado.titulo);
         setTexto(recado.texto);
+    }
+
+    // Cancelar a edição e limpar o formulário
+    function cancelarEdicao() {
+        setRecadoEditando(null);
+        setTitulo("");
+        setTexto("");
     }
 
     // Adicionar recados
