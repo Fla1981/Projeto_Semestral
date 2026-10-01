@@ -64,7 +64,9 @@ function Recados({ onLogout }) {
             }
         }
     }
-
+    useEffect(() => {
+        carregarRecados();
+    }, []);
     // Função para editar recado
     function editarRecado(recado) {
 
