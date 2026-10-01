@@ -9,11 +9,11 @@ import {
 import Login from "./Paginas/Login";
 import Registro from "./Paginas/Registro";
 import Recados from "./Paginas/Recados";
-import Api from "./Servicos/Api";
+import PrivateRoute from "./Components/PrivateRoute";
+import { logout } from "./Servicos/AuthService";
 import "./Index.css";
 
 function App() {
-
     return (
         <BrowserRouter>
             {/* Permite usar rotas no react */}
@@ -23,60 +23,34 @@ function App() {
 }
 
 function Rotas() {
-
     const navigate = useNavigate();
 
-    // Função para fazer logout do usuário
+    // Logout: o back-end invalida a sessão e o cookie HttpOnly deixa de valer
     async function handleLogout() {
-
         try {
-
-            // Envio do pedido de logout para API
-            await Api.post("/logout");
-
-            // Remove o token salvo
-            localStorage.removeItem("token");
-
-            alert("Logout realizado com sucesso");
-
-            navigate("/login");
-
+            await logout();
         } catch (erro) {
-
             console.error("Erro ao fazer logout: ", erro);
-
-            localStorage.removeItem("token");
-
+        } finally {
             navigate("/login");
         }
     }
 
     return (
         <Routes>
-
-            <Route
-                path="/"
-                element={<Navigate to="/login" />}
-            />
-
-            <Route
-                path="/login"
-                element={<Login />}
-            />
-
-            <Route
-                path="/registro"
-                element={<Registro />}
-            />
-
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
             <Route
                 path="/recados"
-                element={<Recados onLogout={handleLogout} />}
+                element={
+                    <PrivateRoute>
+                        <Recados onLogout={handleLogout} />
+                    </PrivateRoute>
+                }
             />
-
         </Routes>
     );
 }
 
 export default App;
-
