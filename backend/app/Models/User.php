@@ -7,9 +7,10 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 // Permitindo o uso de tokens de API para autenticação
 use Laravel\Sanctum\HasApiTokens;
 
@@ -20,16 +21,23 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    // Um usuário pode ter muitos recados (relação entre users e recados)
+    public function recados(): HasMany
+    {
+        return $this->hasMany(Recado::class);
+    }
+
+    // Papel de administrador (usado pela RecadoPolicy no download de anexos)
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
-    // Um usuário pode ter muitos recados, estabelecendo a relação entre as tabelas users e recados
-    public function Recados(): HasMany
-    {
-        return $this->hasMany(Recado::class);
-    }
 
     protected function casts(): array
     {
