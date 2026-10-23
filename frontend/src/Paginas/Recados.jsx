@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import PokemonService from "../Servicos/PokemonService";
 import {
-    listarRecados,
-    criarRecado,
-    editarRecado as editarRecadoApi,
-    excluirRecado
+       listarRecados,
+       criarRecado,
+       editarRecado as editarRecadoApi,
+       excluirRecado,
+       enviarAnexo,
+       baixarAnexo
 } from "../Servicos/RecadosService";
 
 function Recados({ onLogout }) {
@@ -14,6 +16,8 @@ function Recados({ onLogout }) {
     const [titulo, setTitulo] = useState("");
     const [texto, setTexto] = useState("");
     const [recados, setRecados] = useState([]);
+    const [anexo, setAnexo] = useState(null);
+    const [campoArquivo, setCampoArquivo] = useState(0);
 
     // Guardar o recado que está sendo editado
     // Quando o usuário clica em "Editar", o recado correspondente é armazenado aqui para que possamos preencher os campos do formulário com seus dados.
@@ -65,6 +69,12 @@ function Recados({ onLogout }) {
         }
     }
 
+    // Limpa o arquivo escolhido e o campo de arquivo do formulário
+    function limparAnexo() {
+        setAnexo(null);
+        setCampoArquivo((n) => n + 1);
+    }
+
     useEffect(() => {
         carregarRecados();
     }, []);
@@ -83,33 +93,45 @@ function Recados({ onLogout }) {
         setRecadoEditando(null);
         setTitulo("");
         setTexto("");
+        limparAnexo();
     }
 
     // Adicionar recados
     async function adicionarRecado(event) {
-    event.preventDefault();
+        event.preventDefault();
 
         try {
-            await criarRecado(titulo, texto);
-
-            alert("Recado cadastrado com sucesso!");
+            // Cria o recado uma única vez e guarda o resultado
+            const novo = await criarRecado(titulo, texto);
 
             setTitulo("");
             setTexto("");
 
+            // Anexo opcional: só envia se o usuário escolheu um arquivo
+            if (anexo) {
+                try {
+                    await enviarAnexo(novo.id, anexo);
+                } catch (erroAnexo) {
+                    const msg =
+                        erroAnexo.response?.data?.errors?.anexo?.[0] ??
+                        "Não foi possível enviar o anexo.";
+                    alert("Recado salvo, mas o anexo falhou: " + msg);
+                    console.error("Falha no anexo:", erroAnexo);
+                    limparAnexo();
+                    carregarRecados();
+                    return;
+                }
+            }
+
+            alert("Recado cadastrado com sucesso!");
+            limparAnexo();
             carregarRecados();
 
         } catch (erro) {
-            console.error(
-                "Erro ao cadastrar recado:",
-                erro
-            );
+            console.error("Erro ao cadastrar recado:", erro);
 
             if (erro.response) {
-                console.log(
-                    "Resposta do servidor:",
-                    erro.response.data
-                );
+                console.log("Resposta do servidor:", erro.response.data);
             }
 
             alert("Erro ao cadastrar recado.");
@@ -126,31 +148,34 @@ function Recados({ onLogout }) {
         }
 
         try {
-            await editarRecadoApi(
-                recadoEditando.id,
-                titulo,
-                texto
-            );
+            await editarRecadoApi(recadoEditando.id, titulo, texto);
 
-            alert("Recado editado com sucesso!");
+            // Anexo opcional: se escolheu um arquivo, troca o anexo do recado
+            if (anexo) {
+                try {
+                    await enviarAnexo(recadoEditando.id, anexo);
+                } catch (erroAnexo) {
+                    const msg =
+                        erroAnexo.response?.data?.errors?.anexo?.[0] ??
+                        "Não foi possível enviar o anexo.";
+                    alert("Recado editado, mas o anexo falhou: " + msg);
+                    console.error("Falha no anexo:", erroAnexo);
+                }
+            } else {
+                alert("Recado editado com sucesso!");
+            }
 
             setTitulo("");
             setTexto("");
             setRecadoEditando(null);
-
+            limparAnexo();
             carregarRecados();
 
         } catch (erro) {
-            console.error(
-                "Erro ao editar recado:",
-                erro
-            );
+            console.error("Erro ao editar recado:", erro);
 
             if (erro.response) {
-                console.log(
-                    "Resposta do servidor:",
-                    erro.response.data
-                );
+                console.log("Resposta do servidor:", erro.response.data);
             }
 
             alert("Erro ao editar recado.");
@@ -212,6 +237,15 @@ function Recados({ onLogout }) {
                             value={titulo}
                             onChange={(event) => setTitulo(event.target.value)}
                             placeholder="Digite o título"
+                        />
+
+                        <label htmlFor="anexo">Anexo (opcional: imagem ou PDF, até 5 MB)</label>
+                        <input
+                            key={campoArquivo}
+                            id="anexo"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.pdf"
+                            onChange={(event) => setAnexo(event.target.files[0] ?? null)}
                         />
                     </div>
  
@@ -329,6 +363,11 @@ function Recados({ onLogout }) {
                                 >
                                     Excluir
                                 </button>
+                                   {recado.anexo_nome && (
+                                    <button onClick={() => baixarAnexo(recado.id, recado.anexo_nome)}>
+                                        {recado.anexo_nome}
+                                    </button>
+                                )}
                             </div>
  
                         </div>
