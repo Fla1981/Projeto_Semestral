@@ -1,21 +1,23 @@
 # Cadastro e Lista de Recados
 
-Projeto semestral de Laboratório de Desenvolvimento Web: um sistema full-stack de recados pessoais, com autenticação e gerenciamento de recados por usuário.
+Projeto semestral de Laboratório de Desenvolvimento Web: um sistema full-stack de recados pessoais, com autenticação, gerenciamento de recados por usuário e anexos (imagem ou PDF).
 
 ## Tecnologias
 
 - **Frontend:** React (Vite), React Router, Axios
 - **Backend:** Laravel 13 + Laravel Sanctum
 - **Banco de dados:** MySQL 8 (Eloquent + migrations)
+- **Armazenamento de arquivos:** Laravel Storage (disco privado)
 - **API externa:** PokéAPI (https://pokeapi.co)
 
-## Funcionalidades (Entrega Parcial)
+## Funcionalidades
 
 - Cadastro de usuário (nome, e-mail e senha)
 - Login e logout
 - Rotas protegidas: a página de recados só abre com o usuário logado
 - Lista de recados do usuário logado (título, texto e data)
 - Adicionar, editar e excluir recados, com a lista atualizada sem recarregar a página
+- Anexo opcional por recado (imagem ou PDF, até 5 MB), com download protegido
 - Consulta à API pública PokéAPI na tela de recados
 
 ## Como a autenticação funciona
@@ -27,10 +29,18 @@ O projeto usa o modo **SPA do Laravel Sanctum**, com sessão em cookie:
 - O cookie `XSRF-TOKEN` fica legível de propósito: o Axios o lê e o envia no cabeçalho `X-XSRF-TOKEN`, que é a proteção contra CSRF. Ele não é uma credencial de login.
 - O front não consegue ver o cookie de sessão, então a proteção de rotas pergunta ao back-end (`GET /api/user`) se existe sessão válida. Se a resposta for 401, o usuário volta para o login.
 
+## Anexos
+
+- **Upload:** um anexo opcional por recado. Tipos aceitos: JPG, PNG, WEBP e PDF. Tamanho máximo: 5 MB. A validação é feita no back-end por um Form Request (`UploadAnexoRequest`), que confere o tipo pelo conteúdo do arquivo e não só pela extensão. Enviar um novo anexo substitui o anterior.
+- **Armazenamento:** o arquivo é salvo no disco privado do Laravel (`storage/app/private/anexos`), com nome aleatório. Não é acessível por URL pública; **não rode `php artisan storage:link`** para estes arquivos.
+- **Download:** só o dono do recado ou um administrador pode baixar o anexo (controle por `RecadoPolicy`, método `baixarAnexo`). Quem não tem permissão recebe `403`; sem login, `401`. O upload é permitido apenas ao dono.
+- **Exclusão:** ao excluir um recado, o arquivo anexado também é apagado do Storage.
+- **Limite do PHP:** para aceitar até 5 MB, o `php.ini` precisa de `upload_max_filesize = 10M` e `post_max_size = 12M` (o padrão do PHP é 2 MB).
+
 ## Pré-requisitos
 
 - Node.js 20+
-- PHP 8.5+ (testado com 8.5), com as extensões `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `curl` e `zip` ativas
+- PHP 8.4+ (testado com 8.5), com as extensões `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `curl` e `zip` ativas
 - Composer 2
 - MySQL 8 rodando
 
@@ -104,7 +114,9 @@ Todas as rotas ficam sob `http://localhost:8000/api`. Antes de `login` e `regist
 | POST | `/api/recados` | sim | Cria um recado. Corpo: `titulo`, `texto`. |
 | GET | `/api/recados/{id}` | sim | Mostra um recado. |
 | PUT | `/api/recados/{id}` | sim | Edita um recado. Corpo: `titulo`, `texto`. |
-| DELETE | `/api/recados/{id}` | sim | Exclui um recado. |
+| DELETE | `/api/recados/{id}` | sim | Exclui um recado e o anexo dele. |
+| POST | `/api/recados/{id}/anexo` | sim (dono) | Envia o anexo (`multipart/form-data`, campo `anexo`; JPG, PNG, WEBP ou PDF, até 5 MB). Retorna `201`; `422` se o arquivo for inválido; `403` se o recado não for do usuário. |
+| GET | `/api/recados/{id}/anexo` | sim (dono ou admin) | Baixa o anexo. `403` sem permissão; `404` se o recado não tiver anexo. |
 
 Erros de validação retornam `422` com as mensagens por campo. Rotas protegidas sem sessão retornam `401`.
 
@@ -118,15 +130,17 @@ Na tela de recados há o campo **Buscar Pokémon**. O usuário digita o nome (po
 
 ```
 Projeto_Semestral/
-├── backend/                 # Laravel 13 (API)
-│   ├── app/Http/Controllers # AuthController, RecadoController
-│   ├── routes/api.php       # rotas da API
-│   └── database/migrations  # migrations versionadas
-├── frontend/                # React (Vite)
+├── backend/                         # Laravel 13 (API)
+│   ├── app/Http/Controllers         # AuthController, RecadoController, RecadoAnexoController
+│   ├── app/Http/Requests            # UploadAnexoRequest (validação do anexo)
+│   ├── app/Policies                 # RecadoPolicy (quem acessa o anexo)
+│   ├── routes/api.php               # rotas da API
+│   └── database/migrations          # migrations versionadas
+├── frontend/                        # React (Vite)
 │   └── src/
-│       ├── Paginas/         # Login, Registro, Recados
-│       ├── Components/      # PrivateRoute
-│       └── Servicos/        # Api, AuthService, RecadosService, PokemonService
+│       ├── Paginas/                 # Login, Registro, Recados
+│       ├── Components/              # PrivateRoute
+│       └── Servicos/                # Api, AuthService, RecadosService, PokemonService
 └── README.md
 ```
 
@@ -135,15 +149,18 @@ Projeto_Semestral/
 - **`No application encryption key has been specified`:** rode `php artisan key:generate` e reinicie o `php artisan serve`.
 - **`Access denied for user 'root'`:** confira `DB_USERNAME` e `DB_PASSWORD` no `.env` e rode `php artisan config:clear`.
 - **`could not find driver`:** ative a extensão `pdo_mysql` no `php.ini`.
+- **Erro 500 em `/sanctum/csrf-cookie`:** o MySQL provavelmente está desligado, ou falta rodar `php artisan migrate` (a sessão fica na tabela `sessions`).
+- **`Unknown column 'anexo_path'`:** a migration dos anexos não foi aplicada. Rode `php artisan migrate`.
+- **Upload recusado sem mensagem de validação:** confira `upload_max_filesize` e `post_max_size` no `php.ini` e reinicie o `php artisan serve`.
 - **Login retorna 419 ou 401 mesmo com a senha certa:** confira se o front está na porta listada em `SANCTUM_STATEFUL_DOMAINS` e se a origem consta em `config/cors.php`.
 
 ## Equipe
 
-- [Ricardo Silva Godoi]
-- [Matheus Cappi]
-- [Luis Felipe]
-- [Renan Stella]
-- [Caia Braga]
+- Ricardo Silva Godoi
+- Renan Stella Gouvêa
+- Caia Braga Castilho
+- Luis Felipe
+- Matheus Cappi
 
 ## Convenção de commits
 
