@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Recado;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class RecadoController extends Controller
 {
@@ -39,7 +40,7 @@ class RecadoController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return Recado::where('user_id', Auth::id())->findOrFail($id);
     }
 
     /**
@@ -67,7 +68,15 @@ class RecadoController extends Controller
     {
         $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
 
+        $caminhoAnexo = $recado->anexo_path;
+
         $recado->delete();
+
+        // Apaga o arquivo depois do registro: se algo falhar aqui,
+        // sobra um arquivo solto, mas nunca um recado apontando para um arquivo inexistente
+        if ($caminhoAnexo) {
+            Storage::delete($caminhoAnexo);
+        }
 
         return response()->json([
             'message' => 'Recado excluído com sucesso!'
