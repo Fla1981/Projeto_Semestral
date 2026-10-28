@@ -12,7 +12,12 @@ class Recado extends Model
         'titulo',
         'texto',
         'user_id',
+        'anexo_path',
+        'anexo_nome'
     ];
+
+    protected $hidden = ['anexo_path'];
+    
     // Cada recado pertence a um usuário, estabelecendo a relação entre as tabelas recados e users
     public function user(): BelongsTo
     {
