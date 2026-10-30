@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Recado;
 use Illuminate\Support\Facades\Auth;
@@ -65,21 +65,40 @@ class RecadoController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
-    {
-        $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
+{
+    // Localiza somente o recado pertencente ao usuário autenticado.
+    $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
 
-        $caminhoAnexo = $recado->anexo_path;
+    // Guarda o caminho do anexo antes de excluir o recado.
+    $caminhoAnexo = $recado->anexo_path;
 
-        $recado->delete();
+    // Exclui o registro do banco de dados.
+    $recado->delete();
 
-        // Apaga o arquivo depois do registro: se algo falhar aqui,
-        // sobra um arquivo solto, mas nunca um recado apontando para um arquivo inexistente
-        if ($caminhoAnexo) {
-            Storage::delete($caminhoAnexo);
+    // Tenta remover o arquivo associado ao recado.
+    if ($caminhoAnexo) {
+        try {
+            $excluido = Storage::delete($caminhoAnexo);
+
+            // Registra no log se o arquivo não foi removido.
+            if (! $excluido) {
+                Log::error('Não foi possível excluir o anexo do recado.', [
+                    'recado_id' => $id,
+                    'caminho' => $caminhoAnexo,
+                ]);
+            }
+        } catch (\Throwable $erro) {
+            // Registra detalhes técnicos da falha.
+            Log::error('Erro ao excluir o anexo do recado.', [
+                'recado_id' => $id,
+                'caminho' => $caminhoAnexo,
+                'erro' => $erro->getMessage(),
+            ]);
         }
-
-        return response()->json([
-            'message' => 'Recado excluído com sucesso!'
-        ]);
     }
+
+    return response()->json([
+        'message' => 'Recado excluído com sucesso!'
+    ]);
+}
 }
