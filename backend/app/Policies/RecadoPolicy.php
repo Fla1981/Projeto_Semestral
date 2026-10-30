@@ -4,24 +4,19 @@ namespace App\Policies;
 
 use App\Models\Recado;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class RecadoPolicy
 {
-    // Enviar anexo: só o dono do recado
+    // Somente o dono do recado pode enviar um anexo.
     public function anexar(User $user, Recado $recado): bool
     {
         return $user->id === $recado->user_id;
     }
 
-    // Baixar anexo: o dono ou um admin
+    // O dono ou um administrador pode baixar o anexo.
     public function baixarAnexo(User $user, Recado $recado): bool
     {
-        return $user->id === $recado->user_id || $user->isAdmin();
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->role === 'admin';
+        return $user->id === $recado->user_id
+            || $user->isAdmin();
     }
 }
