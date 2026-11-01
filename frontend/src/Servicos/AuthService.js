@@ -1,9 +1,9 @@
-import Api from "./Api";
 
-const URL_CSRF = "http://localhost:8000/sanctum/csrf-cookie";
+import Api, { ApiRaiz } from "./Api";
 
+// Solicita o cookie CSRF antes das operações de autenticação.
 export async function login(email, senha) {
-    await Api.get(URL_CSRF);
+    await ApiRaiz.get("/sanctum/csrf-cookie");
 
     const resposta = await Api.post("/login", {
         email: email,
@@ -13,8 +13,9 @@ export async function login(email, senha) {
     return resposta.data;
 }
 
+// Solicita o cookie CSRF antes do cadastro.
 export async function registrar(nome, email, senha, confirmarSenha) {
-    await Api.get(URL_CSRF);
+    await ApiRaiz.get("/sanctum/csrf-cookie");
 
     const resposta = await Api.post("/register", {
         name: nome,
@@ -26,11 +27,13 @@ export async function registrar(nome, email, senha, confirmarSenha) {
     return resposta.data;
 }
 
+// Encerra a sessão autenticada.
 export async function logout() {
     const resposta = await Api.post("/logout");
     return resposta.data;
 }
 
+// Consulta o usuário autenticado.
 export async function buscarUsuarioLogado() {
     const resposta = await Api.get("/user");
     return resposta.data;
