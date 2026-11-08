@@ -19,6 +19,8 @@ Projeto semestral de Laboratório de Desenvolvimento Web: um sistema full-stack 
 - Adicionar, editar e excluir recados, com a lista atualizada sem recarregar a página
 - Anexo opcional por recado (imagem ou PDF, até 5 MB), com download protegido
 - Consulta à API pública PokéAPI na tela de recados
+- Papéis de usuário: usuário comum e administrador
+- Painel de moderação, com a lista de recados de todos os usuários (somente administrador)
 
 ## Como a autenticação funciona
 
@@ -36,6 +38,31 @@ O projeto usa o modo **SPA do Laravel Sanctum**, com sessão em cookie:
 - **Download:** só o dono do recado ou um administrador pode baixar o anexo (controle por `RecadoPolicy`, método `baixarAnexo`). Quem não tem permissão recebe `403`; sem login, `401`. O upload é permitido apenas ao dono.
 - **Exclusão:** ao excluir um recado, o arquivo anexado também é apagado do Storage.
 - **Limite do PHP:** para aceitar até 5 MB, o `php.ini` precisa de `upload_max_filesize = 10M` e `post_max_size = 12M` (o padrão do PHP é 2 MB).
+
+## Papéis de usuário (RBAC)
+
+- **Dois papéis:** `user` (padrão de todo cadastro) e `admin`, guardados na coluna `role` da tabela `users`.
+- **Usuário comum:** só vê, edita e exclui os próprios recados. Todas as consultas filtram por `user_id`.
+- **Administrador:** acessa o painel de moderação (`/admin`), que lista os recados de todos os usuários com o autor e o anexo de cada um. Também pode baixar qualquer anexo. O painel é somente leitura.
+- **Proteção no servidor:** `GET /api/admin/recados` usa o Gate `admin` (`can:admin`). Sem login retorna `401`, e usuário comum retorna `403`. A checagem no front-end (`AdminRoute`) serve só para a navegação.
+- **Sem autopromoção:** o cadastro nunca define o papel (`role` fica fora do `$fillable`), então todo novo usuário é `user`.
+
+### Criando o usuário administrador
+
+O administrador é criado por um seeder, a partir de variáveis do `.env`:
+
+```env
+ADMIN_EMAIL=admin@exemplo.com
+ADMIN_PASSWORD=troque-esta-senha
+```
+
+Depois do `php artisan migrate`, rode:
+
+```bash
+php artisan db:seed --class=AdminSeeder
+```
+
+Entre no sistema com esse e-mail e senha. O botão **Painel Admin** aparece no cabeçalho da tela de recados. Se `ADMIN_PASSWORD` não estiver definido, o seeder avisa e não cria o usuário.
 
 ## Pré-requisitos
 
@@ -83,6 +110,7 @@ Depois:
 ```bash
 php artisan key:generate
 php artisan migrate
+php artisan db:seed --class=AdminSeeder
 php artisan serve
 ```
 
@@ -117,6 +145,7 @@ Todas as rotas ficam sob `http://localhost:8000/api`. Antes de `login` e `regist
 | DELETE | `/api/recados/{id}` | sim | Exclui um recado e o anexo dele. |
 | POST | `/api/recados/{id}/anexo` | sim (dono) | Envia o anexo (`multipart/form-data`, campo `anexo`; JPG, PNG, WEBP ou PDF, até 5 MB). Retorna `201`; `422` se o arquivo for inválido; `403` se o recado não for do usuário. |
 | GET | `/api/recados/{id}/anexo` | sim (dono ou admin) | Baixa o anexo. `403` sem permissão; `404` se o recado não tiver anexo. |
+| GET | `/api/admin/recados` | sim (admin) | Lista os recados de todos os usuários, com o autor. `403` para usuário comum. |
 
 Erros de validação retornam `422` com as mensagens por campo. Rotas protegidas sem sessão retornam `401`.
 
@@ -131,16 +160,17 @@ Na tela de recados há o campo **Buscar Pokémon**. O usuário digita o nome (po
 ```
 Projeto_Semestral/
 ├── backend/                         # Laravel 13 (API)
-│   ├── app/Http/Controllers         # AuthController, RecadoController, RecadoAnexoController
+│   ├── app/Http/Controllers         # AuthController, RecadoController, RecadoAnexoController, AdminRecadoController
 │   ├── app/Http/Requests            # UploadAnexoRequest (validação do anexo)
 │   ├── app/Policies                 # RecadoPolicy (quem acessa o anexo)
 │   ├── routes/api.php               # rotas da API
+|   ├── database/seeders             # AdminSeeder (cria o usuário administrador)
 │   └── database/migrations          # migrations versionadas
 ├── frontend/                        # React (Vite)
 │   └── src/
-│       ├── Paginas/                 # Login, Registro, Recados
-│       ├── Components/              # PrivateRoute
-│       └── Servicos/                # Api, AuthService, RecadosService, PokemonService
+│       ├── Paginas/                 # Login, Registro, Recados, Admin
+│       ├── Components/              # PrivateRoute, AdminRoute
+│       └── Servicos/                # Api, AuthService, RecadosService, AdminService, PokemonService
 └── README.md
 ```
 
@@ -153,6 +183,7 @@ Projeto_Semestral/
 - **`Unknown column 'anexo_path'`:** a migration dos anexos não foi aplicada. Rode `php artisan migrate`.
 - **Upload recusado sem mensagem de validação:** confira `upload_max_filesize` e `post_max_size` no `php.ini` e reinicie o `php artisan serve`.
 - **Login retorna 419 ou 401 mesmo com a senha certa:** confira se o front está na porta listada em `SANCTUM_STATEFUL_DOMAINS` e se a origem consta em `config/cors.php`.
+- **O botão "Painel Admin" não aparece, ou `/admin` volta para a tela de recados:** o usuário não é administrador. Rode `php artisan db:seed --class=AdminSeeder` e entre com o e-mail e a senha do `.env`.
 
 ## Equipe
 
