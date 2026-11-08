@@ -9,6 +9,9 @@ import {
        baixarAnexo
 } from "../Servicos/RecadosService";
 
+import { useNavigate } from "react-router-dom";
+import { buscarUsuarioLogado } from "../Servicos/AuthService";
+
 function Recados({ onLogout }) {
     const [pokemon, setPokemon] = useState(null);
     const [nomePokemon, setNomePokemon] = useState("");
@@ -18,6 +21,8 @@ function Recados({ onLogout }) {
     const [recados, setRecados] = useState([]);
     const [anexo, setAnexo] = useState(null);
     const [campoArquivo, setCampoArquivo] = useState(0);
+    const navigate = useNavigate();
+    const [ehAdmin, setEhAdmin] = useState(false);
 
     // Guardar o recado que está sendo editado
     // Quando o usuário clica em "Editar", o recado correspondente é armazenado aqui para que possamos preencher os campos do formulário com seus dados.
@@ -74,6 +79,12 @@ function Recados({ onLogout }) {
         setAnexo(null);
         setCampoArquivo((n) => n + 1);
     }
+
+    useEffect(() => {
+        buscarUsuarioLogado()
+            .then((usuario) => setEhAdmin(usuario.role === "admin"))
+            .catch(() => {});
+    }, []);
 
     useEffect(() => {
         carregarRecados();
@@ -213,10 +224,16 @@ function Recados({ onLogout }) {
  
             <header className="Recados-Header">
                 <h1>Meus Recados</h1>
- 
-                <button className="Botao-Sair" onClick={onLogout}>
-                    Sair
-                </button>
+
+                <div className="Header-Botoes">
+                    {ehAdmin && (
+                        <button onClick={() => navigate("/admin")}>Painel Admin</button>
+                    )}
+
+                    <button className="Botao-Sair" onClick={onLogout}>
+                        Sair
+                    </button>
+                </div>
             </header>
  
             {/* Formulário de novo recado / edição */}
