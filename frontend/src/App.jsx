@@ -9,6 +9,8 @@ import {
 import Login from "./Paginas/Login";
 import Registro from "./Paginas/Registro";
 import Recados from "./Paginas/Recados";
+import Admin from "./Paginas/Admin";
+import AdminRoute from "./Components/AdminRoute";
 import PrivateRoute from "./Components/PrivateRoute";
 import { logout } from "./Servicos/AuthService";
 import "./Index.css";
@@ -47,6 +49,15 @@ function Rotas() {
                     <PrivateRoute>
                         <Recados onLogout={handleLogout} />
                     </PrivateRoute>
+                }
+            />
+
+            <Route
+                path="/admin"
+                element={
+                    <AdminRoute>
+                        <Admin onLogout={handleLogout} />
+                    </AdminRoute>
                 }
             />
         </Routes>
