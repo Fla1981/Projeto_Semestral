@@ -11,6 +11,7 @@ import Registro from "./Paginas/Registro";
 import Recados from "./Paginas/Recados";
 import Admin from "./Paginas/Admin";
 import AdminRoute from "./Components/AdminRoute";
+import AdminUsuarios from "./Paginas/AdminUsuarios";
 import PrivateRoute from "./Components/PrivateRoute";
 import { logout } from "./Servicos/AuthService";
 import "./Index.css";
@@ -57,6 +58,15 @@ function Rotas() {
                 element={
                     <AdminRoute>
                         <Admin onLogout={handleLogout} />
+                    </AdminRoute>
+                }
+            />
+
+            <Route
+                path="/admin/usuarios"
+                element={
+                    <AdminRoute>
+                        <AdminUsuarios onLogout={handleLogout} />
                     </AdminRoute>
                 }
             />
