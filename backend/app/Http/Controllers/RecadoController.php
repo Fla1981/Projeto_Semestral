@@ -1,54 +1,42 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
+
+use App\Http\Requests\UploadAnexoRequest;
 use App\Models\Recado;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class RecadoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // ---------- CRUD do usuário logado ----------
+
     public function index()
     {
-        // Retorna os recados existentes do usuário autenticado
-        return Recado::where('user_id', Auth::id())->get();
+        return Recado::where('user_id', Auth::id())->latest()->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'titulo' => 'required|string|max:255',
             'texto' => 'required|string',
         ]);
-        // Define o user_id do recado como o ID do usuário autenticado
-        // Isso garante que o recado seja associado ao usuário correto
 
         $validated['user_id'] = Auth::id();
 
-        return Recado::create($validated);
+        return response()->json(Recado::create($validated), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         return Recado::where('user_id', Auth::id())->findOrFail($id);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        // Localiza o recado pelo ID e pelo user_id do usuário autenticado
         $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
 
         $validated = $request->validate([
@@ -61,44 +49,69 @@ class RecadoController extends Controller
         return $recado;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
-{
-    // Localiza somente o recado pertencente ao usuário autenticado.
-    $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
+    {
+        $recado = Recado::where('user_id', Auth::id())->findOrFail($id);
 
-    // Guarda o caminho do anexo antes de excluir o recado.
-    $caminhoAnexo = $recado->anexo_path;
+        $this->apagar($recado);
 
-    // Exclui o registro do banco de dados.
-    $recado->delete();
-
-    // Tenta remover o arquivo associado ao recado.
-    if ($caminhoAnexo) {
-        try {
-            $excluido = Storage::delete($caminhoAnexo);
-
-            // Registra no log se o arquivo não foi removido.
-            if (! $excluido) {
-                Log::error('Não foi possível excluir o anexo do recado.', [
-                    'recado_id' => $id,
-                    'caminho' => $caminhoAnexo,
-                ]);
-            }
-        } catch (\Throwable $erro) {
-            // Registra detalhes técnicos da falha.
-            Log::error('Erro ao excluir o anexo do recado.', [
-                'recado_id' => $id,
-                'caminho' => $caminhoAnexo,
-                'erro' => $erro->getMessage(),
-            ]);
-        }
+        return response()->json(['message' => 'Recado excluído com sucesso!']);
     }
 
-    return response()->json([
-        'message' => 'Recado excluído com sucesso!'
-    ]);
-}
+    // Moderação: o admin exclui o recado de qualquer usuário
+    public function destroyAdmin(Recado $recado)
+    {
+        $this->apagar($recado);
+
+        return response()->json(['message' => 'Recado excluído com sucesso!']);
+    }
+
+    // Apaga o registro e, depois, o anexo do Storage
+    private function apagar(Recado $recado): void
+    {
+        $caminhoAnexo = $recado->anexo_path;
+
+        $recado->delete();
+
+        if ($caminhoAnexo) {
+            Storage::delete($caminhoAnexo);
+        }
+    }
+        // ---------- Moderação (rota protegida por can:admin) ----------
+
+    // Lista os recados de todos os usuários, com o nome do autor
+    public function todos()
+    {
+        return Recado::with('user:id,name')->latest()->get();
+    }
+
+    // ---------- Anexos ----------
+
+    public function storeAnexo(UploadAnexoRequest $request, Recado $recado)
+    {
+        // Um anexo por recado: se já existe, apaga o antigo
+        if ($recado->anexo_path) {
+            Storage::delete($recado->anexo_path);
+        }
+
+        $arquivo = $request->file('anexo');
+
+        $recado->update([
+            'anexo_path' => $arquivo->store('anexos'), // disco privado, nome aleatório
+            'anexo_nome' => $arquivo->getClientOriginalName(),
+        ]);
+
+        return response()->json(['anexo_nome' => $recado->anexo_nome], 201);
+    }
+
+    public function showAnexo(Recado $recado)
+    {
+        Gate::authorize('baixarAnexo', $recado);
+
+        if (! $recado->anexo_path || ! Storage::exists($recado->anexo_path)) {
+            return response()->json(['message' => 'Este recado não possui anexo.'], 404);
+        }
+
+        return Storage::download($recado->anexo_path, $recado->anexo_nome);
+    }
 }
