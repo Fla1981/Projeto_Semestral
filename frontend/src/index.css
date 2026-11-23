@@ -328,7 +328,6 @@ button:active {
 
 .Admin-Arquivo {
     align-self: flex-end;
-    margin-top: auto;
     padding: 4px 12px;
     font-size: 0.8rem;
     border-radius: 6px;
@@ -338,6 +337,30 @@ button:active {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.Papel-Selo {
+    align-self: flex-start;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(34, 211, 238, 0.15);
+    color: #22d3ee;
+}
+
+.Admin-Rodape {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.Admin-Excluir {
+    align-self: flex-end;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
 }
 
 @media (max-width: 600px) {
