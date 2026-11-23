@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listarTodosRecados } from "../Servicos/AdminService";
+import { listarTodosRecados, excluirRecadoAdmin } from "../Servicos/AdminService";
 import { baixarAnexo } from "../Servicos/RecadosService";
 
 function Admin({ onLogout }) {
@@ -23,12 +23,26 @@ function Admin({ onLogout }) {
         carregar();
     }, []);
 
+    async function excluir(recado) {
+        if (!window.confirm(`Excluir o recado "${recado.titulo}" de ${recado.user?.name}?`)) return;
+
+        try {
+            await excluirRecadoAdmin(recado.id);
+            // Tira o recado da lista sem recarregar a página
+            setRecados((atual) => atual.filter((item) => item.id !== recado.id));
+        } catch (erro) {
+            console.error("Erro ao excluir recado:", erro);
+            alert("Não foi possível excluir o recado.");
+        }
+    }
+
     return (
         <div className="Admin-Container">
             <header className="Admin-Header">
                 <h1>Painel de Administrador</h1>
 
                 <div className="Admin-Botoes">
+                    <button onClick={() => navigate("/admin/usuarios")}>Usuários</button>
                     <button className="Botao-Secundario" onClick={() => navigate("/recados")}>
                         Voltar
                     </button>
@@ -55,6 +69,10 @@ function Admin({ onLogout }) {
                             <strong>Por:</strong> <span>{recado.user?.name}</span>
                         </small>
 
+                        <button className="Botao-Excluir Admin-Excluir" onClick={() => excluir(recado)}>
+                            Excluir
+                        </button>
+
                         {recado.anexo_nome && (
                             <button
                                 className="Admin-Arquivo"
@@ -63,6 +81,7 @@ function Admin({ onLogout }) {
                                 {recado.anexo_nome}
                             </button>
                         )}
+                        
                     </article>
                 ))}
             </div>
